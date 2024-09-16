@@ -3,10 +3,33 @@
 
 <head>
 	<meta charset="utf-8" />
-	<link rel="icon" href="%sveltekit.assets%/favicon.ico" />
+	<link rel="icon" href="/favicon.ico" />
 	<meta name="viewport" content="width=device-width" />
+
+	<!-- SEO -->
+	<meta name="theme-color" content="#f49625" />
+	
+	<meta property="og:title" content="Kazwire" />
+	
+	<meta name="description" content="From the gaming classics to the internet, access YouTube, TikTok, and even your favorite games freely and securely." />
+	<meta property="og:description" content="From the gaming classics to the internet, access YouTube, TikTok, and even your favorite games freely and securely." />
+	
+	<meta property="og:image" content="https://kazwire.com/logo.png" />
+
+	<meta name="robots" content="index, follow" />
+	<meta name="revisit-after" content="7 days" />
+	<!-- End of SEO -->
+
 	<link rel="manifest" href="/assets/manifest.json" />
 	<title>Kazwire</title>
+
+	<!-- iOS PWA tags -->
+	<meta name="apple-mobile-web-app-capable" content="yes"> 
+	<meta name="apple-touch-fullscreen" content="yes">
+	<meta name="apple-mobile-web-app-title" content="Kazwire">
+	<link rel="apple-touch-icon" href="/logo.png">
+	<meta name="apple-touch-startup-image" content="/logo.png">	
+	<!-- End of iOS PWA tags -->
 
 	<!-- Stuff for other domains -->
 
@@ -20,7 +43,7 @@
 
 	<!-- UV stuff & service workers -->
 	<script src="/uv/uv.bundle.js" defer></script>
-	<script src="/uv/uv.config.js" defer></script>
+	<script src="/uv/uv.config.js?3" defer></script>
 	<script src="/sw.js" defer></script>
 	<script src="/register-sw.js" defer></script>
 	<!-- End of UV stuff & service workers -->

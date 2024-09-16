@@ -1,14 +1,14 @@
 <script>
-	import Nav from '../components/nav.svelte';
-	import Promo from '../components/promo.svelte';
-	import RandomBox from '../components/randomBox.svelte';
-	import Faq from '../components/faq.svelte';
-	import Partners from '../components/partners.svelte';
-	import Credits from '../components/credits.svelte';
-	import News from '../components/news/news.svelte';
-	import Footer from '../components/footer.svelte';
+	import Nav from '$lib/components/nav.svelte';
+	import Promo from '$lib/components/promo.svelte';
+	import RandomBox from '$lib/components/randomBox.svelte';
+	import Faq from '$lib/components/faq.svelte';
+	import Partners from '$lib/components/partners.svelte';
+	import Credits from '$lib/components/credits.svelte';
+	import ChangeLog from '$lib/components/changelog/changelog.svelte';
+	import Footer from '$lib/components/footer.svelte';
 
-	import HorzAd from '../components/horz-ad.svelte';
+	import HorzAd from '$lib/components/horz-ad.svelte';
 </script>
 
 <Nav />
@@ -20,7 +20,7 @@
 		<RandomBox />
 	</div>
 	<div class="grid lg:col-start-3 lg:row-start-1 sm:row-start-3 sm:row-span-1 justify-center sm:mt-10">
-		<News />
+		<ChangeLog />
 	</div>
 </div>
 <HorzAd />

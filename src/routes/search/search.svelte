@@ -29,36 +29,13 @@
 	}
 
 	async function iframeSearch() {
-		startLoad();
+		document.getElementById('search-iframe').style.display = 'none';
 		await registerSW();
 
 		let input = document.getElementById('uv-address').value;
 		let iframe = document.getElementById('search-iframe');
 
 		iframe.src = __uv$config.prefix + __uv$config.encodeUrl(search(input));
-	}
-	// shows a loading animation
-	function startLoad() {
-		let searchFrame = document.getElementById('search-iframe');
-		// background transparent
-		searchFrame.src = 'about:blank';
-		searchFrame.style.background =
-			'rgba(31, 41, 55, 100) url(/assets/loading.gif) no-repeat center';
-		searchFrame.style.backgroundSize = '100px';
-		searchFrame.style.backgroundRepeat = 'no-repeat';
-		searchFrame.style.backgroundPosition = 'center';
-	}
-
-	// watch for title change in iframe
-	function checkTitle() {
-		let iframe = document.getElementById('search-iframe');
-		let contentTitle = iframe.contentDocument.title;
-		let title = document.getElementById('title').innerHTML;
-
-		if (contentTitle !== title) {
-			document.getElementById('title').innerHTML = contentTitle;
-		}
-		return contentTitle;
 	}
 
 	function fullScreen() {
@@ -78,13 +55,29 @@
 		}
 	}
 
-	import VertAd from '../../components/vert-ad.svelte';
+	import VertAd from '$lib/components/vert-ad.svelte';
 </script>
 
 <script>
-	import Back from '../../components/buttons/back.svelte';
-	import Minimize from '../../components/buttons/minimize.svelte';
+	import Back from '$lib/components/buttons/back.svelte';
+	import Minimize from '$lib/components/buttons/minimize.svelte';
+	import { onMount } from 'svelte';
+
+	let searchInput = '';
+
+	onMount(async () => {
+		let url = new URL(window.location.href);
+		let search = url.searchParams.get('s');
+		if (search) {
+			searchInput = search;
+			startLoad();
+			iframeSearch();
+		}
+	});
+
 	let maximized = false;
+	let loading = false;
+	let initialLaunch = true;
 
 	function minimize() {
 		// make the iframe back to normal
@@ -120,6 +113,38 @@
 		maximized = true;
 	}
 
+	function startLoad() {
+		document.getElementById('search-iframe').style.display = 'none';
+		loading = true;
+		initialLaunch = false;
+
+		// wait 2 seconds and if the page hasn't loaded, remove the loading animation
+		setTimeout(() => {
+			if (loading) {
+				loading = false;
+				document.getElementById('search-iframe').style.display = 'block';
+			}
+		}, 2000);
+	}
+
+	function loaded() {
+		checkTitle();
+		document.getElementById('search-iframe').style.display = 'block';
+		loading = false;
+	}
+
+	// watch for title change in iframe
+	function checkTitle() {
+		let iframe = document.getElementById('search-iframe');
+		let contentTitle = iframe.contentDocument.title;
+		let title = document.getElementById('title').innerHTML;
+
+		if (contentTitle !== title) {
+			document.getElementById('title').innerHTML = contentTitle;
+		}
+		return contentTitle;
+	}
+
 	function hideMessage() {
 		let message = document.getElementById('message');
 		message.style.display = 'none';
@@ -130,16 +155,17 @@
 	<!-- <div id="message" class="flex-center">
 		<button class="m-auto bg-secondary md:w-[50vw] sm:w-[80vw] p-3 rounded-lg mt-5 text-white"
 		on:click={hideMessage}>
-			Please be patient while we work on scaling our systems.
+			Search is currently disabled due to server issues. Please be patient while we fix it over the coming days.
 	</button>
 	</div> -->
-	<form id="uv-form" class="flex-center" on:submit={iframeSearch}>
+	<form id="uv-form" class="flex-center" on:submit={iframeSearch} on:submit={startLoad}>
 		<input
 			id="uv-address"
 			type="text"
 			class="md:w-[35vw] sm:w-[70vw] h-10 p-6 rounded-lg mt-5 text-black placeholder:text-gray-500"
 			placeholder="Search here..."
 			autocomplete="off"
+			bind:value={searchInput}
 		/>
 	</form>
 </div>
@@ -148,6 +174,35 @@
 	<div class="flex h-[calc(90vh-132px)] md:w-[80vw] sm:w-full float-left pl-5 pr-5 pb-5">
 		<div class="flex-grow mb-14 align-center">
 			<div id="search-frame" class="w-full h-full">
+				{#if initialLaunch}
+					<div
+						class="flex flex-col items-center justify-center w-full h-full bg-zinc-900 rounded-t-lg"
+					>
+						<div>
+							<img src="/logo.png" class="h-24 p-3 inline-block" alt="Kazwire Logo" />
+							<span
+								class="hidden lg:inline-block text-4xl font-semibold whitespace-nowrap text-white align-middle"
+								>Kazwire</span
+							>
+						</div>
+					</div>
+				{:else if loading}
+					<div
+						class="flex flex-col items-center justify-center w-full h-full bg-zinc-900 rounded-t-lg"
+					>
+						<div>
+							<img src="/logo.png" class="h-24 p-3 inline-block" alt="Kazwire Logo" />
+							<span
+								class="hidden lg:inline-block text-4xl font-semibold whitespace-nowrap text-white align-middle"
+								>Kazwire</span
+							>
+						</div>
+						<div class="flex flex-col items-center">
+							<img src="/assets/loading.gif" class="h-20 w-20 mt-4" alt="Loading..." />
+						</div>
+					</div>
+				{/if}
+
 				<!-- <Back /> -->
 				<!-- Removed due to complaints -->
 				{#if maximized}
@@ -157,8 +212,9 @@
 				{/if}
 				<iframe
 					id="search-iframe"
-					on:load={checkTitle}
-					class="w-full h-full rounded-t-lg bg-black"
+					on:load={loaded}
+					title="Search"
+					class="hidden w-full h-full rounded-t-lg bg-black"
 				/>
 			</div>
 
@@ -184,6 +240,117 @@
 							>
 						</button>
 					</div>
+					<!-- Below will be refactored soon -->
+					<div class="float-right mr-5">
+						<button class="mt-[1.1rem] h-5 w-5 fill-white" id="refresh">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"
+								><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path
+									d="M463.5 224H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1c-87.5 87.5-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5z"
+								/></svg
+							>
+						</button>
+					</div>
+					<script>
+						document.querySelector('#refresh').onclick = function () {
+							if (!document.querySelector('#search-frame > div')) {
+								document.getElementById('search-iframe').contentWindow.location.reload();
+							}
+						};
+						function makeAutofillWork(autofill) {
+							let googleLink = 'https://www.google.com/search?q=%s';
+							try {
+								return new URL(autofill).toString();
+							} catch {}
+							try {
+								const autofillUrl = new URL(`http://${autofill}`);
+								if (autofillUrl.hostname.includes('.')) return autofillUrl.toString();
+							} catch {}
+							return googleLink.replace('%s', encodeURIComponent(autofill));
+						}
+
+						document.querySelector('#uv-address').onkeyup = () => {
+							searching(document.querySelector('#uv-address').value);
+						};
+
+						var styleElement = document.createElement('style');
+						styleElement.textContent = '#autofill:hover {text-decoration: underline}';
+						document.head.appendChild(styleElement);
+
+						document.body.addEventListener('click', async (e) => {
+							if (e.target.id == 'uv-address') {
+								if (document.querySelector('#uv-address').value != '') {
+									document.querySelector('#uv-address').style.borderRadius = '.5rem .5rem 0 0';
+								}
+								if (document.querySelectorAll('#autofill')) {
+									for (var i = 0; i < document.querySelectorAll('#autofill').length; i++) {
+										document.querySelectorAll('#autofill')[i].style.display = 'block';
+									}
+								}
+							} else {
+								if (e.target.id == 'autofill') {
+									var searchFrame = document.getElementById('search-iframe');
+									await registerSW();
+									let autofillValue = e.target.innerText;
+									if (document.querySelector('#search-frame > div')) {
+										searchFrame.onload = () => {
+											document.querySelector('#search-frame > div').remove();
+										};
+									}
+									searchFrame.src =
+										__uv$config.prefix + __uv$config.encodeUrl(makeAutofillWork(autofillValue));
+								}
+								document.querySelector('#uv-address').style.borderRadius = '.5rem';
+								if (document.querySelectorAll('#autofill')) {
+									for (var i = 0; i < document.querySelectorAll('#autofill').length; i++) {
+										document.querySelectorAll('#autofill')[i].style.display = 'none';
+									}
+								}
+							}
+						});
+
+						async function searching(query) {
+							var rawResponse = await fetch(
+								'https://cors.zimjs.com/https://duckduckgo.com/ac/?q=' + query + '&type=list',
+								{
+									method: 'POST',
+									headers: {
+										Accept: 'application/json',
+										'Content-Type': 'application/json'
+									}
+								}
+							);
+							var jsonResult = await rawResponse.json();
+							var jsonResult = jsonResult[1];
+							document.querySelector('#uv-address').style.borderRadius = '.5rem .5rem 0 0';
+
+							if (document.querySelectorAll('#autofill')) {
+								var allAutofillElements = document.querySelectorAll('#autofill');
+								for (var i = 0; i < allAutofillElements.length; i++) {
+									allAutofillElements[i].remove();
+								}
+							}
+
+							if (query != '') {
+								for (var i = 0; i < jsonResult.length; i++) {
+									var newEl = document.createElement('div');
+									newEl.id = 'autofill';
+									newEl.className = 'md:w-[35vw] sm:w-[70vw] text-black placeholder:text-gray-500';
+									newEl.style =
+										'background:white;padding:calc(1.5rem / 2);cursor:pointer;position:absolute;left: 0; right: 0; margin-left: auto; margin-right: auto;z-index:999;';
+									newEl.style.width = document.querySelector('#uv-address').offsetWidth;
+									newEl.style.marginTop = 2.5 * i + 'rem';
+									if (i >= jsonResult.length - 1) {
+										newEl.style.borderRadius = '0 0 .5rem .5rem';
+									}
+									newEl.innerText = jsonResult[i];
+									document.querySelector('#uv-form').appendChild(newEl);
+								}
+							} else {
+								document.querySelector('#uv-address').style.borderRadius = '.5rem';
+							}
+						}
+					</script>
+					<!-- Above will be refactored soon -->
 					<div id="title" class="ml-5">Nothing here...</div>
 				</div>
 			</div>

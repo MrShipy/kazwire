@@ -1,11 +1,11 @@
 <script>
-	import Footer from '../../../components/footer.svelte';
-	import Nav from '../../../components/nav.svelte';
+	import Footer from '$lib/components/footer.svelte';
+	import Nav from '$lib/components/nav.svelte';
 </script>
 
 <Nav />
 <div id="home" class="h-full w-full pl-10 pt-10 pr-10 text-white">
-	<h1 class="text-3xl">Website Terms and Conditions of Use</h1>
+	<h1 class="text-3xl font-bold">Website Terms and Conditions of Use</h1>
 	<br />
 	<h2 class="text-2xl">1. Terms</h2>
 	<br />
